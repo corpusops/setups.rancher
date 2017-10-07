@@ -1,0 +1,28 @@
+---
+- include_role: {name: corpusops.roles/vars_registry}
+  vars:
+    cops_vars_registry_target: corpusops_rancher_server
+  tags: [vars]
+- file:
+    state: directory
+    path: "{{item}}"
+    mode: "0751"
+  with_items:
+    - "{{corpusops_rancher_server_vars.root}}"
+    - "{{corpusops_rancher_server_vars.root}}/local"
+  tags: [layout]
+- template:
+    src: "../templates/docker-compose.yml"
+    dest: "{{corpusops_rancher_server_vars.root}}/{{corpusops_rancher_server_vars.service_file}}"
+    mode: "0600"
+    trim_blocks: false
+  tags: [layout, configs, docker]
+  notify: [restart_docker_compose_service]
+- include_role:
+    name: corpusops.roles/docker_compose_service
+  vars:
+    _docker_compose_service:
+      project: "{{corpusops_rancher_server_vars.service_name}}"
+      docker_compose_file: "{{corpusops_rancher_server_vars.service_file}}"
+      working_directory: "{{corpusops_rancher_server_vars.root}}"
+  tags: [docker, service]

@@ -1,0 +1,23 @@
+---
+corpusops_rancher_server_name: "rancherserver"
+corpusops_rancher_server_service_file: "compose-server.yml"
+corpusops_rancher_server_root: "/srv/rancher/{{corpusops_rancher_server_name}}"
+# corpusops_rancher_server_root: "{{playbook_dir|copsf_dirname}}"
+corpusops_rancher_server_image: "rancher/server:stable"
+corpusops_rancher_server_service_name: "{{corpusops_rancher_server_name}}"
+corpusops_rancher_server_sysctls:
+  - net.ipv6.conf.all.disable_ipv6=1
+corpusops_rancher_server_environment:
+corpusops_rancher_server_volumes:
+  - ./local/data/mysql:/var/lib/mysql
+  - ./local/data/cattle:/var/lib/cattle
+  - ./local/data/logs:/var/log/mysql
+corpusops_rancher_server_restart: unless-stopped
+#corpusops_rancher_server_bind_ip: 127.0.0.1
+corpusops_rancher_server_bind_ip: 0.0.0.0
+corpusops_rancher_server_bind_port: 8080
+corpusops_rancher_server_ports:
+  - "{{corpusops_rancher_server_bind_ip}}:{{corpusops_rancher_server_bind_port}}:8080"
+corpusops_rancher_server_links: []
+corpusops_rancher_server_external_links: []
+corpusops_rancher_server_networks: []

@@ -1,0 +1,40 @@
+---
+# {% set v = corpusops_rancher_server_vars %}
+version: '3'
+services:
+  "{{v.name}}": 
+    {% for i in [ 'networks', ] %}
+    {%- set val =  v.get(i, None) %}
+    {%- if val %}
+    {{-i}}: {{val.keys()|to_nice_json}}
+    {%- endif %}
+    {%endfor%}
+
+    {% for i in [
+      'links',
+      'external_links',
+      'privileged',
+      'command',
+      'entrypoint',
+      'environment',
+      'sysctls',
+      'volumes',
+      'restart',
+      'ports',
+      'image']
+    %}
+    {%- set val =  v.get(i, None) %}
+    {%- if val %}
+    {{-i}}: {{val|to_nice_json}}
+    {%- endif %}
+    {% endfor -%}
+#
+#
+#
+{% for i in [ 'networks',] %}
+{%- set val =  v.get(i, None) %}
+{%- if val %}
+{{-i}}: {{val|to_nice_json}}
+{%- endif %}
+{% endfor -%}
+ 

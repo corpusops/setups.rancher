@@ -1,0 +1,20 @@
+---
+- include_role: {name: corpusops.roles/vars_registry}
+  vars:
+    cops_vars_registry_target: corpusops_rancher_agent
+  tags: [vars]
+- file:
+    state: directory
+    path: "{{item}}"
+    mode: "0751"
+  with_items:
+    - "{{corpusops_rancher_agent_vars.root}}"
+    - "{{corpusops_rancher_agent_vars.root}}/local"
+  tags: [layout]
+- template:
+    src: "../templates/run.sh"
+    dest: "{{corpusops_rancher_agent_vars.root}}/run.sh"
+    mode: "0700"
+  tags: [layout]
+- shell: "{{corpusops_rancher_agent_vars.root}}/run.sh"
+  tags: [register]

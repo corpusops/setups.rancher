@@ -1,0 +1,23 @@
+---
+# if auth isnt set, set it !
+corpusops_rancher_setup_localauth: true
+# url up to /v1"
+corpusops_rancher_agent_base_url: null
+# part after /scripts/ inside agent registration screen
+corpusops_rancher_agent_token: null
+# full url
+corpusops_rancher_agent_url: "{{corpusops_rancher_agent_base_url}}/scripts/{{corpusops_rancher_agent_token}}"
+corpusops_rancher_agent_image: "rancher/agent:v1.2.6"
+corpusops_rancher_agent_labels: ""
+corpusops_rancher_agent_host_ip: ""
+# either empty string or 1 if samebox with agent & server
+corpusops_rancher_agent_collocated: ""
+corpusops_rancher_agent_environment: []
+corpusops_rancher_agent_ports: []
+corpusops_rancher_agent_name: "rancheragent"
+corpusops_rancher_agent_root: "/srv/rancher/{{corpusops_rancher_agent_name}}"
+corpusops_rancher_agent_sysctls:
+  - net.ipv6.conf.all.disable_ipv6=1
+corpusops_rancher_agent_volumes:
+  - /var/run/docker.sock:/var/run/docker.sock
+  - "{{corpusops_rancher_agent_root}}/local/data/agent:/var/lib/rancher"

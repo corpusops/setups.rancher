@@ -1,0 +1,101 @@
+# Deploy & manage rancher clusters with docker & ansible
+## prerequisites
+### on control machine:
+- corpusops
+- kubectl if deploying k8s environment
+- Install with:
+
+```
+bin/install.sh
+# OPT:
+cd local/corpusops.bootstrap
+bin/cops_apply_role roles/corpusops.roles/localsettings_kubectl/role.yml
+```
+
+### Create ansible inventory
+
+- Create a regular ansible inventory with all of your variables and <br/>
+  use the appropriate ``-i`` switch on your commands
+- Eg create ``local/inventory``
+
+```
+
+```
+
+- Then  ``local/*/bin/ansible -i $abspath/inventory all -m ping``
+
+### on remote machines
+- python
+- systemd
+- docker-ce >= 17.09.0-ce
+- docker-compose >= 1.16.1
+- Installation can be done with corpusops on ubuntu:
+
+```
+cd local/corpusops.bootstrap
+bin/ansible-playbook -i $abspath/inventory roles/corpusops.roles/services_virt_docker/role.yml
+```
+
+# configure server node
+## inventory
+- [server variables](playbooks/roles/server/defaults/main.yml)
+
+## access your cluster
+- By default we configure rancher to listen on localhost:8080
+- TIP: You can access it remotly with a ssh tunnel:
+    -
+
+      ```sh
+      ssh -L 12345:localhost:8080 myrancherbaremetal
+      ```
+
+    - open http://localhost:12345
+
+## First run, dont forget to lock your rancher admin with a user
+- Go to admin/access control and configure authentication !!!
+- EG:
+    - choose a login/password
+    - click local
+    - save
+
+# configure agent node
+## inventory
+- [agent variables](playbooks/roles/agent/defaults/main.yml)
+
+## Eg: deploy an agent to register a standalone k8s node
+
+- vars if using docker compose and your agent is colocated with the server (same machine)
+
+```ini
+[rancheragent:vars]
+corpusops_rancher_agent_labels=etcd=true&orchestration=true&compute=true
+corpusops_rancher_agent_base_url=http://foobar.com:8080/v1
+corpusops_rancher_agent_token=xxx:yyy:zzz
+```
+
+- vars if using docker compose and your agent is colocated with the server (same machine)
+
+```ini
+[rancheragent:vars]
+corpusops_rancher_agent_labels=etcd=true&orchestration=true&compute=true
+corpusops_rancher_agent_host_ip=192.168.1.2
+corpusops_rancher_agent_base_url=http://{{corpusops_rancher_agent_host_ip}}:8080/v1
+corpusops_rancher_agent_token=xxx:yyy:zzz
+corpusops_rancher_agent_collocated=1
+```
+
+# Typical workflow to create a kubernetes cluster
+- Create a rancher server
+- Configure authentication on the server
+- Create one or more rancher agents with environment: ``"CATTLE_HOST_LABELS='etcd=true&orchestration=true&compute=true"``
+    - ``etcd=true``: etcd plane node
+    - ``controller=true``: controller plane node
+    - ``compute=true``: compute plane node
+- Configure a kubernetes environment on the server and link those node onto the environment
+
+# Note on sharing the same host for the server and the agent
+This use can is common on development boxes.
+
+Be aware that the agent has a 3way register step and that the containers that launch the registration scripts are not in the same network that the remaining container which use the network start of your baremetal host.
+
+Thus, The easiest way to make the registration process suceed is to ell your baremetal host to use a name for "localhost" that you will share and also use inside the "companions containers". This name can be either an hostname or a fqdn, we recommend using a FQDN.
