@@ -12,6 +12,7 @@ services:
 
     {% for i in [
       'links',
+      'network_mode',
       'external_links',
       'privileged',
       'command',

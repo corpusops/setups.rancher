@@ -14,6 +14,7 @@ corpusops_rancher_server_volumes:
   - ./local/data/logs:/var/log/mysql
 corpusops_rancher_server_restart: unless-stopped
 #corpusops_rancher_server_bind_ip: 127.0.0.1
+corpusops_rancher_server_network_mode: "bridge"
 corpusops_rancher_server_bind_ip: 0.0.0.0
 corpusops_rancher_server_bind_port: 8080
 corpusops_rancher_server_ports:
