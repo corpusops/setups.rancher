@@ -1,0 +1,31 @@
+---
+- include_role: {name: corpusops.roles/vars_registry}
+  vars:
+    cops_vars_registry_target: corpusops_rancher_vbox
+  tags: [vars]
+- name: when until rancher server is ready
+  uri:
+    url: "{{corpusops_rancher_vbox_vars.url}}"
+  register: corpusops_rancher_vbox_ready
+  retries: 65
+  delay: 1
+  until: corpusops_rancher_vbox_ready.status != -1
+  failed_when: corpusops_rancher_vbox_ready.status == -1
+- include_tasks: test_auth.yml
+  vars:
+    api_user: "{{omit}}"
+    api_pw: "{{omit}}"
+- name: create an admin and restrict the api
+  include_tasks: enable_admin.yml
+  when: corpusops_rancher_vbox_auth.status == 200
+- include_tasks: test_auth.yml
+  tags: corpusops_rancher_vbox_auth2
+- debug: msg="API auth failed"
+  failed_when: corpusops_rancher_vbox_auth.status != 200
+- shell: docker inspect rancher-agent
+  failed_when: false
+  register: agentstatus
+- include_tasks: register_agent.yml
+  tags: corpusops_rancher_register_agent
+  when: agentstatus.rc != 0
+#- {debug: msg: "{{vars}}"; failed_when: True}

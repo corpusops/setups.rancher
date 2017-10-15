@@ -1,0 +1,33 @@
+---
+# get a register token
+- uri:
+    url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/project"
+    method: GET
+    body_format: json
+    user: "{{corpusops_rancher_vbox_vars.api_v}}"
+    password: "{{corpusops_rancher_vbox_vars.api_k}}"
+  register: corpusops_rancher_vbox_projects
+  tags: corpusops_rancher_vbox_projects
+- set_fact:
+    corpusops_rancher_vbox_pid: "{{corpusops_rancher_vbox_projects.json.data[0]['id']}}"
+- uri:
+    method: POST
+    body_format: json
+    status_code: 201
+    url: "{{ corpusops_rancher_vbox_vars.url }}/v1/registrationtokens?projectId={{corpusops_rancher_vbox_pid}}"
+    user: "{{corpusops_rancher_vbox_vars.api_v}}"
+    password: "{{corpusops_rancher_vbox_vars.api_k}}"
+  register: rancher_token_url
+- uri:
+    method: GET
+    body_format: json
+    url: "{{ rancher_token_url.json.links.self}}"
+    user: "{{corpusops_rancher_vbox_vars.api_v}}"
+    password: "{{corpusops_rancher_vbox_vars.api_k}}"
+  register: rancher_token_infos
+- set_fact:
+    corpusops_rancher_agent_base_url: "{{corpusops_rancher_vbox_vars.url}}/v1"
+    corpusops_rancher_agent_token: "{{rancher_token_infos.json.token}}"
+    corpusops_rancher_agent_host_ip: "{{corpusops_rancher_vbox_vars.localaddr}}"
+    corpusops_rancher_agent_collocated: 1
+- include_role: name=agent

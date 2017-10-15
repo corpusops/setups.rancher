@@ -1,2 +1,4 @@
 /local
+/vagrant_config.yml
+/.vagrant
 *.retry

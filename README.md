@@ -99,3 +99,23 @@ This use can is common on development boxes.
 Be aware that the agent has a 3way register step and that the containers that launch the registration scripts are not in the same network that the remaining container which use the network start of your baremetal host.
 
 Thus, The easiest way to make the registration process suceed is to ell your baremetal host to use a name for "localhost" that you will share and also use inside the "companions containers". This name can be either an hostname or a fqdn, we recommend using a FQDN.
+
+
+# vagrant setup
+- We provide a setup to deploy a single node rancher (controller+agent) [doc](hacking/vagrant)
+
+```sh
+vagrant up
+```
+
+- You can hack the vagrant_config.yml file (eg: override the PLAYBOOKS var to setup elseway the rancher roles)
+
+
+- To access the rancher ui, just use
+
+```sh
+hacking/vagrant/ssh.sh -L 8080:localhost:8080
+```
+
+- Then http://localhost:8080
+

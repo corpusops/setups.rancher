@@ -1,0 +1,18 @@
+---
+corpusops_rancher_vbox_localaddr: "{% for i in ansible_all_ipv4_addresses %}{% if i.startswith('192') %}{{i}}{%endif%}{%endfor%}"
+corpusops_rancher_vbox_stuff : 1
+corpusops_rancher_vbox_url: "http://{{corpusops_rancher_vbox_localaddr}}:8080"
+corpusops_rancher_vbox_telemetry: "true"
+corpusops_rancher_vbox_admin: "rancheradmin"
+corpusops_rancher_vbox_password: "{{
+    lookup('password',
+           ('../local/pwd_rancher_admin '
+            'length=15 chars=ascii_letters,digits')) }}"
+corpusops_rancher_vbox_api_v: "{{
+    lookup('password',
+           ('../local/apiv_rancher_admin '
+            'length=15 chars=ascii_letters,digits')) }}"
+corpusops_rancher_vbox_api_k: "{{
+    lookup('password',
+           ('../local/apik_rancher_admin '
+            'length=15 chars=ascii_letters,digits')) }}"

@@ -1,0 +1,7 @@
+- uri:
+    url: "{{api_url|default(corpusops_rancher_vbox_vars.url)}}"
+    user: "{{api_user|default(corpusops_rancher_vbox_vars.api_v)}}"
+    password: "{{api_pw|default(corpusops_rancher_vbox_vars.api_k)}}"
+  register: corpusops_rancher_vbox_auth
+  tags: corpusops_rancher_vbox_auth
+  failed_when: False

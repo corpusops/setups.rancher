@@ -1,0 +1,102 @@
+--
+- uri:
+    url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/settings/telemetry.opt"
+    method: GET
+    tags: corpusops_rancher_vbox_auth21
+  register: corpusops_rancher_vbox_auth21
+- uri:
+    url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/settings/telemetry.opt"
+    method: PUT
+    body:
+      id: "telemetry.opt"
+      name: "telemetry.opt"
+      source: "Database"
+      activeValue: "{{corpusops_rancher_vbox_vars.telemetry}}"
+      value: "{{corpusops_rancher_vbox_vars.telemetry}}"
+    body_format: json
+  register: corpusops_rancher_vbox_auth2
+  tags: corpusops_rancher_vbox_auth2
+  when: >-
+    ( corpusops_rancher_vbox_auth21.json.activeValue !=
+      corpusops_rancher_vbox_vars.telemetry)
+- uri:
+    url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/project"
+    method: GET
+    body_format: json
+  register: corpusops_rancher_vbox_projects
+  tags: corpusops_rancher_vbox_projects
+- set_fact:
+    corpusops_rancher_vbox_pid: "{{corpusops_rancher_vbox_projects.json.data[0]['id']}}"
+- uri:
+    url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/localauthconfigs"
+    method: GET
+    body_format: json
+  register: corpusops_rancher_vbox_projects_lc
+  tags: corpusops_rancher_vbox_lc
+- uri:
+    url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/localauthconfigs"
+    method: POST
+    body:
+      accessMode: "unrestricted"
+      enabled: false
+      name: "{{corpusops_rancher_vbox_vars.admin}}"
+      username: "{{corpusops_rancher_vbox_vars.admin}}"
+      password: "{{corpusops_rancher_vbox_vars.password}}"
+    body_format: json
+    status_code: 201
+  when: "not corpusops_rancher_vbox_projects_lc.json.data[0].username"
+  register: corpusops_rancher_vbox_projects_lcs
+  tags: corpusops_rancher_vbox_projects_lcs
+- uri:
+    url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/accounts"
+    method: GET
+    body_format: json
+  register: corpusops_rancher_vbox_projects_accounts
+  tags: corpusops_rancher_vbox_projects_accounts
+#- debug: "msg={{corpusops_rancher_vbox_projects_accounts}}"
+- uri:
+    url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/accounts"
+    method: GET
+    body_format: json
+  register: corpusops_rancher_vbox_projects_accounts
+  tags: corpusops_rancher_vbox_projects_accounts
+- set_fact:
+    corpusops_rancher_vbox_projects_aid: "{{corpusops_rancher_vbox_projects_accounts.json.data[0].id}}"
+- uri:
+    url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/apikeys"
+    method: GET
+    body_format: json
+  register: corpusops_rancher_vbox_projects_apikeys
+  tags: corpusops_rancher_vbox_projects_apikeys
+- uri:
+    url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/apikeys"
+    method: POST
+    body:
+      accountId:   "{{corpusops_rancher_vbox_projects_aid}}"
+      description: "{{corpusops_rancher_vbox_vars.api_v}}"
+      name: "{{corpusops_rancher_vbox_vars.api_v}}"
+      publicValue: "{{corpusops_rancher_vbox_vars.api_v}}"
+      secretValue: "{{corpusops_rancher_vbox_vars.api_k}}"
+    body_format: json
+    status_code: 201
+  when: not corpusops_rancher_vbox_projects_apikeys.json.data
+  register: corpusops_rancher_vbox_projects_apikeysc
+  tags: corpusops_rancher_vbox_projects_apikeysc
+- uri:
+    url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/localauthconfigs"
+    method: POST
+    body:
+      accessMode: "unrestricted"
+      enabled: true
+      name: "{{corpusops_rancher_vbox_vars.admin}}"
+      username: "{{corpusops_rancher_vbox_vars.admin}}"
+      password: "{{corpusops_rancher_vbox_vars.password}}"
+    body_format: json
+    status_code: 201
+  when: "not corpusops_rancher_vbox_projects_lc.json.data[0].username"
+  register: corpusops_rancher_vbox_projects_lcs2
+  tags: corpusops_rancher_vbox_projects_lcs2
+
+
+
+
