@@ -1,0 +1,41 @@
+---
+- uri:
+    url: "{{corpusops_rancher_vbox_vars.url}}/v1/projects"
+    method: GET
+    body_format: json
+    user: "{{corpusops_rancher_vbox_vars.api_v}}"
+    password: "{{corpusops_rancher_vbox_vars.api_k}}"
+  register: corpusops_rancher_vbox_projects
+  tags: corpusops_rancher_vbox_projects
+- set_fact:
+    corpusops_rancher_vbox_pid: "{{corpusops_rancher_vbox_projects.json.data[0]['id']}}"
+- stat:
+    path: "{{corpusops_rancher_vbox_cfg}}/ranchercompose_env"
+  register: corpusops_rancher_vbox_compose_env
+  tags: corpusops_rancher_vbox_compose_env
+- uri:
+    url: "{{corpusops_rancher_vbox_vars.url}}/v1/projects/{{corpusops_rancher_vbox_pid}}/apikeys"
+    user: "{{corpusops_rancher_vbox_vars.api_v}}"
+    password: "{{corpusops_rancher_vbox_vars.api_k}}"
+    method: POST
+    body_format: json
+    status_code: 201
+  register: corpusops_rancher_vbox_envkey
+  tags: corpusops_rancher_vbox_envkey
+  when: not corpusops_rancher_vbox_compose_env.stat.exists
+- copy:
+    dest: "{{corpusops_rancher_vbox_cfg}}/ranchercompose_env_default"
+    mode: "0600"
+    content: |
+      #!/usr/bin/env bash
+      #
+      export DOCKER_HOST="tcp://{{corpusops_rancher_vbox_vars.localaddr}}:2375"
+      #
+      export RANCHER_URL="{{corpusops_rancher_vbox_vars.url}}"
+      #
+      export RANCHER_ADMIN="{{corpusops_rancher_vbox_vars.admin}}"
+      export RANCHER_PASSWORD="{{corpusops_rancher_vbox_vars.password}}"
+      #
+      export RANCHER_ACCESS_KEY="{{corpusops_rancher_vbox_envkey.json.publicValue}}"
+      export RANCHER_SECRET_KEY="{{corpusops_rancher_vbox_envkey.json.secretValue}}"
+  when: not corpusops_rancher_vbox_compose_env.stat.exists

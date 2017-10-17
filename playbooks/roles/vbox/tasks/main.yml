@@ -5,6 +5,7 @@
   when: corpusops_rancher_vbox_auth.status == 200
   tags: [restrict_api]
 - {include_tasks: want_api.yml, tags: [want_api]}
+- {include_tasks: env_key.yml, tags: [env_key]}
 - include_tasks: agent.yml
   when: corpusops_rancher_vbox_auth.status == 200
   tags: [agent]
