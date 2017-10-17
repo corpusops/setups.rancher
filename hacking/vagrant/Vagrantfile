@@ -88,6 +88,7 @@ end
 cfg = Hash.new
 # Number of machines to spawn
 cfg['PROVISION_SCRIPT'] = "/host/hacking/vagrant/provision.sh"
+cfg['POST_PROVISION_SCRIPT'] = "/host/hacking/vagrant/post_provision.sh"
 cfg['UNAME'] = `uname`.strip
 cfg['FORCE_CORPUSOPS_INSTALL'] = ''
 cfg['FORCE_CORPUSOPS_SYNC'] = ''
@@ -112,7 +113,7 @@ cfg['APT_PROXY'] = ''
 # MAKINA STATES CONFIGURATION
 cfg['SERIAL'] = ["disconnected"]
 cfg['HOST_MOUNTPOINT'] = "/host"
-cfg['ANSIBLE_VARS'] = {}
+cfg['ANSIBLE_VARS'] = "#{cfg['HOST_MOUNTPOINT']}/playbooks/variables/vbox.yml"
 # extra provision
 cfg['PLAYBOOKS'] = [
     # install docker
@@ -176,14 +177,18 @@ end
 File.open("#{VSETTINGS_Y}", 'w') {|f| f.write localcfg.to_yaml }
 
 #------------ SHARED FOLDERS ----------------------------
-mountpoints = {CWD => cfg['HOST_MOUNTPOINT']}
+mountpoints = {
+  File.expand_path('~/') => "/host_home",
+  CWD => cfg['HOST_MOUNTPOINT']
+}
 
+ 
 #------------ Computed variables ------------------------
 cfg['VIRTUALBOX_BASE_VM_NAME'] = "corpusops #{cfg['OS']} #{cfg['OS_RELEASE']}64"
 cfg['VM_HOST'] = "corpusops"
 
 def ansible_setup(ansible, cfg, *args)
-    ansible.playbook_command = "#{cfg['COPS_ROOT']}/bin/ansible-playbook"
+    ansible.playbook_command = "#{cfg['HOST_MOUNTPOINT']}/hacking/vagrant/sudo-ansible-playbook.sh"
     # ansible.inventory_path = cfg['HOST_MOUNTPOINT']
     ansible.provisioning_path = cfg['HOST_MOUNTPOINT']
     ansible.sudo = true
@@ -267,7 +272,7 @@ export SKIP_CORPUSOPS_INSTALL="#{cfg['SKIP_CORPUSOPS_INSTALL']}"
 export SKIP_CORPUSOPS_SYNC="#{cfg['SKIP_CORPUSOPS_SYNC']}"
 export SKIP_ROOTSSHKEYS_SYNC="#{cfg['SKIP_ROOTSSHKEYS_SYNC']}"
 EOF},
-         %{cat > /root/vagrant/provision_net.sh  << EOF
+    %{cat > /root/vagrant/provision_net.sh  << EOF
 #!/usr/bin/env bash
 . "/root/vagrant/provision_settings.sh" || exit 1
 echo '#{hostname}' > /etc/hostname
@@ -283,9 +288,13 @@ for i in \\$DNS_SERVERS;do
     echo "nameserver \\$i" >>  /etc/resolv.conf
 done
 EOF},
-         "chmod 700 /root/vagrant/provision_*.sh",
-         "su -c /root/vagrant/provision_net.sh;",
-         "su -l -c #{cfg['PROVISION_SCRIPT']}"]
+           "chmod 700 /root/vagrant/provision_*.sh",
+           "su -c /root/vagrant/provision_net.sh;",
+           "su -l -c #{cfg['PROVISION_SCRIPT']}"]
+
+       post_provision_scripts = [
+           "su -l -c #{cfg['POST_PROVISION_SCRIPT']}"]
+       #
        provision_script = provision_scripts.join("\n")
        sub.vm.provision :shell, :inline => provision_script
        cfg['PLAYBOOKS'].each do |playbookdef|
@@ -296,6 +305,8 @@ EOF},
                end
             end
        end
+       provision_script = post_provision_scripts.join("\n")
+       sub.vm.provision :shell, :inline => provision_script
     end
   end
 end

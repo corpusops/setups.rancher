@@ -104,18 +104,42 @@ Thus, The easiest way to make the registration process suceed is to ell your bar
 # vagrant setup
 - We provide a setup to deploy a single node rancher (controller+agent) [doc](hacking/vagrant)
 
-```sh
-vagrant up
-```
+    ```sh
+    git clone  https://github.com/corpusops/setups.rancher.git
+    cd setups.rancher
+    vagrant up
+    ```
 
-- You can hack the vagrant_config.yml file (eg: override the PLAYBOOKS var to setup elseway the rancher roles)
+- You can hack the ``vagrant_config.yml`` file (eg: override the PLAYBOOKS var to setup elseway the rancher roles)
+- To login on your rancher host, see the ``local`` folder after provisionning:
 
+    ```sh
+    hacking/ssh/mount.sh
+    . local/mountpoint/etc/rancher/rancher_env
+    ```
 
-- To access the rancher ui, just use
+- To access the rancher ui, you can use two ways:
+    - With a ssh tunnel, just use
 
-```sh
-hacking/vagrant/ssh.sh -L 8080:localhost:8080
-```
+            ```sh
+            hacking/vagrant/ssh.sh -L 8080:localhost:8080
+            ```
 
-- Then http://localhost:8080
+        - Then [http://localhost:8080](http://localhost:8080)
 
+    - With the private network address:
+
+            ```sh
+            echo $RANCHER_URL
+            ```
+
+        - Then ``http://$RANCHER_URL``
+
+- You can download the ``rancher`` & ``rancher-compose`` utilities on your local box (see the url in ``local/rancher_env``)
+
+    ```sh
+    hacking/ssh/mount.sh
+    . local/mountpoint/etc/rancher/rancher_env
+    docker ps
+    rancher ps
+    ```

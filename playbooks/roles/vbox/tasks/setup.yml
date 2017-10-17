@@ -1,0 +1,26 @@
+---
+- file:
+    state: directory
+    mode: "0700"
+    path: "{{corpusops_rancher_vbox_cfg}}"
+  tags: [config]
+- include_role: {name: corpusops.roles/vars_registry}
+  vars:
+    cops_vars_registry_target: corpusops_rancher_vbox
+  tags: [vars]
+- copy:
+    dest: "{{corpusops_rancher_vbox_cfg}}/rancher_env"
+    mode: "0600"
+    content: |
+      #!/usr/bin/env bash
+      #
+      export DOCKER_HOST="tcp://{{corpusops_rancher_vbox_vars.localaddr}}:2375"
+      #
+      export RANCHER_URL="{{corpusops_rancher_vbox_vars.url}}"
+      #
+      export RANCHER_ADMIN="{{corpusops_rancher_vbox_vars.admin}}"
+      export RANCHER_PASSWORD="{{corpusops_rancher_vbox_vars.password}}"
+      #
+      export RANCHER_ACCESS_KEY="{{corpusops_rancher_vbox_vars.api_v}}"
+      export RANCHER_SECRET_KEY="{{corpusops_rancher_vbox_vars.api_k}}"
+  tags: [config]

@@ -1,0 +1,7 @@
+---
+- shell: docker inspect rancher-agent
+  failed_when: false
+  register: agentstatus
+- include_tasks: register_agent.yml
+  tags: corpusops_rancher_register_agent
+  when: agentstatus.rc != 0

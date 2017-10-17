@@ -1,0 +1,44 @@
+---
+- uri:
+    method: GET
+    url: "{{corpusops_rancher_vbox_vars.url}}/v1/settings/default.cattle.rancher.compose.linux.url"
+    user: "{{corpusops_rancher_vbox_vars.api_v}}"
+    password: "{{corpusops_rancher_vbox_vars.api_k}}"
+    body_format: json
+  register: corpusops_rancher_vbox_ranchercompose_url
+  tags: corpusops_rancher_vbox_ranchercompose_url
+- uri:
+    method: GET
+    url: "{{corpusops_rancher_vbox_vars.url}}/v1/settings/default.cattle.rancher.cli.linux.url"
+    user: "{{corpusops_rancher_vbox_vars.api_v}}"
+    password: "{{corpusops_rancher_vbox_vars.api_k}}"
+    body_format: json
+  register: corpusops_rancher_vbox_rancher_url
+  tags: corpusops_rancher_vbox_rancher_url
+- include_role:
+    name: corpusops.roles/install_archive
+  vars:
+    _archive:
+      app_path: "{{corpusops_rancher_vbox_vars.bins_dir}}"
+      filetest: [rancher]
+      strip_components: 2
+      urls:
+        archive: "{{corpusops_rancher_vbox_ranchercompose_url.json.value}}"
+  tags: [download_archives]
+- include_role:
+    name: corpusops.roles/install_archive
+  vars:
+    _archive:
+      strip_components: 2
+      app_path: "{{corpusops_rancher_vbox_vars.bins_dir}}"
+      filetest: [rancher-compose]
+      urls:
+        archive: "{{corpusops_rancher_vbox_rancher_url.json.value}}"
+  tags: [download_archives]
+- file:
+    state: link
+    src: "/srv/apps/rancher/{{item}}"
+    dest: "/usr/local/bin/{{item}}"
+  with_items: [rancher, rancher-compose]
+
+
