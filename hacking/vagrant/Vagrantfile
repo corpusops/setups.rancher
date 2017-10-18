@@ -127,6 +127,7 @@ cfg['PLAYBOOKS'] = {
         # install docker
         "#{cfg['COPS_ROOT']}/roles/corpusops.roles/services_virt_docker/role.yml" => {
             "extra_vars" => cfg['ANSIBLE_VARS']
+            # "pythonunbuffered" => "1" | ""
             # "color" => "true" | ""
             # "limit" => ["-l", "foobar"]
             # "extra_args" => ["--version"]

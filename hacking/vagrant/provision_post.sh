@@ -46,8 +46,9 @@ for playbookdefs in plays:
         varsf = vars.get('extra_vars', [])
         verbosity = vars.get('verbosity', '-vvv')
         color = vars.get('color', 'true')
-        if color:
-            env["ANSIBLE_FORCE_COLOR"] = "true"
+        pythonunbuffered = vars.get('pythonunbuffered', '1')
+        env["PYTHONUNBUFFERED"] = pythonunbuffered
+        env["ANSIBLE_FORCE_COLOR"] = color
         inventory = vars.get('inventory', ['-i', '/tmp/corpusops-ansible/inventory/'])
         limit = vars.get('limit', ['-l', "$CORPUSOPS_MACHINE"])
         ea = vars.get('extra_args', [])
@@ -84,7 +85,7 @@ cleanup () {
         return 0
     fi
     # rm this cron on vbox
-    rm /etc/cron.daily/mlocate
+    rm -vf /etc/cron.daily/mlocate
     if [[ -z $NO_APT_CLEANUP ]];then
         rm -vf /var/cache/apt/archives/*deb
         rm -rf  /var/lib/apt/lists/*
