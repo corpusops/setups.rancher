@@ -112,9 +112,7 @@ install_sshfs() {
     fi
     if ! has_command sshfs;then
         log "Install sshfs"
-        if ! apt-get install sshfs;then
-            apt-get update -qq && apt-get install sshfs
-        fi
+        NONINTERACTIVE=y "$COPS_ROOT/bin/cops_pkgmgr_install.sh" sshfs
     else
         log "sshfs is installed"
     fi
