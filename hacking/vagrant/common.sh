@@ -1,4 +1,9 @@
 #!/usr/bin/env bash
+shopt -s extglob
+
+COPS_VAGRANT_DIR=${COPS_VAGRANT_DIR:-$(readlink -f "$(dirname $0)")}
+W=${W:-$(readlink -f "$COPS_VAGRANT_DIR/../..")}
+
 sourcefile() {
     for i in $@;do
         . "$i"
@@ -9,104 +14,220 @@ sourcefile() {
     done
 }
 
-VAGRANT=
-if [ -e /host/.vagrant ] || [ -e /root/vagrant/provision_settings.sh ];then
+if [ -e /root/vagrant/provision_settings.sh ];then
     sourcefile /root/vagrant/provision_settings.sh
-    VAGRANT=1
 fi
 
-W=${W:-$(pwd)}
+
+RED="\\e[0;31m"
+CYAN="\\e[0;36m"
+YELLOW="\\e[0;33m"
+NORMAL="\\e[0;0m"
+NO_COLOR=${NO_COLORS-${NO_COLORS-${NOCOLOR-${NOCOLORS-}}}}
+LOGGER_NAME=${LOGGER_NAME:-cops_vagrant}
+
+
 DEFAULT_COPS_ROOT="/srv/corpusops/corpusops.bootstrap"
 DEFAULT_COPS_URL="https://github.com/corpusops/corpusops.bootstrap.git"
-LOGGER_NAME=${LOGGER_NAME:-vagrantvm}
 COPS_URL=${COPS_URL-$DEFAULT_COPS_URL}
-COPS_ROOT=${COPS_ROOT:-$(pwd)/local/corpusops.bootstrap}
+COPS_ROOT=${COPS_ROOT:-$W/local/corpusops.bootstrap}
 HOST_MOUNTPOINT=${CORPUSOPS_HOST_MOUNTPOINT:-/host}
 HOST_COPS=${CORPUSOPS_HOST_COPS:-$HOST_COPS/local/corpusops.bootstrap}
-VM_MOUNTPOINT=$(pwd)/local/mountpoint
-FORCE_CORPUSOPS_INSTALL=${FORCE_CORPUSOPS_INSTALL:-}
-FORCE_CORPUSOPS_SYNC=${FORCE_CORPUSOPS_SYNC:-}
+VM_MOUNTPOINT=$W/local/mountpoint
 
+usage() {
+    die 128 "No usage found"
+}
 
-if [ ! -e "$COPS_ROOT/.git" ];then
-    # in vagrant try to copy the code from the host inside the VM
-    if [ -e "$HOST_COPS/.git" ];then
-        rsync -azv --exclude=venv "$HOST_COPS/" "$COPS_ROOT/"
-    fi
-    # In any cases, clone cops if not found
-    if [ ! -e "$COPS_ROOT/.git" ] && [[ -n "$COPS_URL" ]];then
-        git clone "$COPS_URL" "$COPS_ROOT"
-    fi
-fi
-
-sourcefile $COPS_ROOT/bin/cops_shell_common
-
-sync_ssh() {
-    if [[ -n "${SKIP_ROOTSSHKEYS_SYNC}" ]];then
-        log "Skip ssh keys sync to root user"
-        return 0
-    fi
-    log "Synchronising user authorized_keys to root"
-    if [ ! -e /root/.ssh ];then
-        mkdir /root/.ssh
-        chmod 700 /root/.ssh
-    fi
-    fics=""
-    users="ubuntu vagrant"
-    for u in ${users};do
-        for i in $(ls /home/${u}/.ssh/authorized_key* 2>/dev/null);do
-            fics="${fics} ${i}"
-        done
+parse_cli_common() {
+    USAGE=
+    for i in ${@-};do
+        case ${i} in
+            --no-color|--no-colors|--nocolor|--no-colors)
+                NO_COLOR=1;;
+            -h|--help)
+                USAGE=1;;
+            *) :;;
+        esac
     done
-    if [ "x${fics}" != "x" ];then
-        echo > /root/.ssh/authorized_keys
-        for i in ${fics};do
-            cat ${i} >> /root/.ssh/authorized_keys
-            echo >> /root/.ssh/authorized_keys
-        done
+    reset_colors
+    if [[ -n ${USAGE} ]]; then
+        usage
     fi
 }
 
-sync_corpusops() {
-    if [[ -n "${SKIP_CORPUSOPS_SYNC}" ]];then
-        log "Force skip install"
-        return 0
-    fi
-    if [[ -e "$COPS_ROOT/bin/install.sh" ]];then
-        if [[ -n $FORCE_CORPUSOPS_SYNC ]]; then
-            vv "$COPS_ROOT/bin/install.sh" -C -s
-            die_in_error "sync"
-        else
-            log "Skip corpusops sync"
+parse_cli() {
+    parse_cli_common "${@}"
+}
+
+has_command() {
+    ret=1
+    if which which >/dev/null 2>/dev/null;then
+      if which "${@}" >/dev/null 2>/dev/null;then
+        ret=0
+      fi
+    else
+      if command -v "${@}" >/dev/null 2>/dev/null;then
+        ret=0
+      else
+        if hash -r "${@}" >/dev/null 2>/dev/null;then
+            ret=0
         fi
-    else
-        log "Skip corpusops installer, not found in $COPS_ROOT"
+      fi
+    fi
+    return ${ret}
+}
+
+get_command() {
+    local p=
+    local cmd="${@}"
+    if which which >/dev/null 2>/dev/null;then
+        p=$(which "${cmd}" 2>/dev/null)
+    fi
+    if [ "x${p}" = "x" ];then
+        p=$(export IFS=:;
+            echo "${PATH-}" | while read -ra pathea;do
+                for pathe in "${pathea[@]}";do
+                    pc="${pathe}/${cmd}";
+                    if [ -x "${pc}" ]; then
+                        p="${pc}"
+                    fi
+                done
+                if [ "x${p}" != "x" ]; then echo "${p}";break;fi
+            done )
+    fi
+    if [ "x${p}" != "x" ];then
+        echo "${p}"
     fi
 }
 
-install_corpusops() {
-    if [[ -n "${SKIP_CORPUSOPS_INSTALL}" ]];then
-        log "Force skip install"
-        return 0
+get_random_slug() {
+    len=${1:-32}
+    strings=${2:-'a-zA-Z0-9'}
+    echo "$(cat /dev/urandom \
+        | tr -dc "$strings" \
+        | fold -w ${len} \
+        | head -n 1)"
+}
+
+reset_colors() {
+    if [[ -n ${NO_COLOR} ]]; then
+        BLUE=""
+        YELLOW=""
+        RED=""
+        CYAN=""
     fi
-    if [ ! -e "$COPS_ROOT/.git" ] && [[ -n "$COPS_URL" ]] ;then
-        git clone "$COPS_URL" "$COPS_ROOT"
+}
+
+log_() {
+    reset_colors
+    logger_color=${1:-${RED}}
+    msg_color=${2:-${YELLOW}}
+    shift;shift;
+    logger_slug="${logger_color}[${LOGGER_NAME}]${NORMAL} "
+    if [[ -n ${NO_LOGGER_SLUG} ]];then
+        logger_slug=""
     fi
-    if [ ! -e "$COPS_ROOT/venv/bin/ansible" ] ||\
-        ! ( has_command virtualenv ) ;then
-        FORCE_CORPUSOPS_INSTALL=1
+    printf "${logger_slug}${msg_color}$(echo "${@}")${NORMAL}\n" >&2;
+    printf "" >&2;  # flush
+}
+
+log() {
+    log_ "${RED}" "${CYAN}" "${@}"
+}
+
+warn() {
+    log_ "${RED}" "${CYAN}" "${YELLOW}[WARN] ${@}${NORMAL}"
+}
+
+may_die() {
+    reset_colors
+    thetest=${1:-1}
+    rc=${2:-1}
+    shift
+    shift
+    if [ "x${thetest}" != "x0" ]; then
+        if [[ -z "${NO_HEADER-}" ]]; then
+            NO_LOGGER_SLUG=y log_ "" "${CYAN}" "Problem detected:"
+        fi
+        NO_LOGGER_SLUG=y log_ "${RED}" "${RED}" "$@"
+        exit $rc
     fi
-    if      [ ! -e "$COPS_ROOT/roles/corpusops.roles" ] \
-        ||  [ ! -e "$COPS_ROOT/venv/src/ansible" ] \
-        ||  [ ! -e "$COPS_ROOT/playbooks/corpusops" ] \
-        ||  [ ! -e "$COPS_ROOT/venv/bin/ansible" ]; then
-        FORCE_CORPUSOPS_SYNC=y
+}
+
+die() {
+    may_die 1 1 "${@}"
+}
+
+die_in_error_() {
+    ret=${1}
+    shift
+    msg="${@:-"$ERROR_MSG"}"
+    may_die "${ret}" "${ret}" "${msg}"
+}
+
+die_in_error() {
+    die_in_error_ "${?}" "${@}"
+}
+
+debug() {
+    if [[ -n "${DEBUG// }" ]];then
+        log_ "${YELLOW}" "${YELLOW}" "${@}"
     fi
-    if [[ -n $FORCE_CORPUSOPS_INSTALL ]]; then
-        vv "$COPS_ROOT/bin/install.sh" -C -S
-        die_in_error "install core"
-    else
-        log "Skip corpusops install"
-    fi
+}
+
+vvv() {
+    debug "${@}"
+    "${@}"
+}
+
+vv() {
+    log "${@}"
+    "${@}"
+}
+
+is_archlinux_like() {
+    echo $DISTRIB_ID | egrep -iq "archlinux"
+}
+
+is_debian_like() {
+    echo $DISTRIB_ID | egrep -iq "debian|ubuntu|mint"
+}
+
+is_redhat_like() {
+    echo $DISTRIB_ID | egrep -iq "fedora|centos|redhat|red-hat"
+}
+
+get_git_changeset() {
+   ( cd "${1:-$(pwd)}" &&\
+     git log HEAD|head -n1|awk '{print $2}')
+}
+
+get_git_branch() {
+   ( cd "${1:-$(pwd)}" &&\
+     git rev-parse --abbrev-ref HEAD | grep -v HEAD || \
+     git describe --exact-match HEAD 2> /dev/null || \
+     git rev-parse HEAD)
+}
+
+get_git_branchs() {
+   ( cd "${1:-$(pwd)}" &&\
+       git branch|sed -e "s/^\*\? \+//g")
+}
+
+version_lte() {
+    [  "$1" = "$(printf "$1\n$2" | sort -V | head -n1)" ]
+}
+
+version_lt() {
+    [ "$1" = "$2" ] && return 1 || version_lte $1 $2
+}
+
+version_gte() {
+    [  "$2" = "$(printf "$1\n$2" | sort -V | head -n1)" ]
+}
+
+version_gt() {
+    [ "$1" = "$2" ] && return 1 || version_gte $1 $2
 }
 # vim:set et sts=4 ts=4 tw=80:

@@ -41,6 +41,10 @@ CWD = File.dirname(__FILE__)
 SCWD = CWD.gsub(/\//, '_').slice(1..-1)
 
 
+VAGRANTFILE_DIR = File.absolute_path(File.dirname(File.readlink(__FILE__)))
+INNER_VAGRANTFILE_DIR = VAGRANTFILE_DIR[CWD.length+1..VAGRANTFILE_DIR.length]
+
+
 def eprintf(*args)
   $stdout = STDERR
   printf(*args)
@@ -51,9 +55,8 @@ class Hash
   def setdefault(key, value)
     if self[key].nil?
       self[key] = value
-    else
-      self[key]
     end
+    self[key]
   end
 end
 
@@ -87,13 +90,14 @@ end
 
 cfg = Hash.new
 # Number of machines to spawn
-cfg['PROVISION_SCRIPT'] = "/host/hacking/vagrant/provision.sh"
-cfg['POST_PROVISION_SCRIPT'] = "/host/hacking/vagrant/post_provision.sh"
+cfg['PROVISION_SCRIPT'] =      "/host/#{INNER_VAGRANTFILE_DIR}/provision_pre.sh"
+cfg['POST_PROVISION_SCRIPT'] = "/host/#{INNER_VAGRANTFILE_DIR}/provision_post.sh"
 cfg['UNAME'] = `uname`.strip
 cfg['FORCE_CORPUSOPS_INSTALL'] = ''
 cfg['FORCE_CORPUSOPS_SYNC'] = ''
 cfg["PRIVATE_NETWORK"] = "192.168.99"
 # Number of machines to spawn
+cfg['MACHINE_NUM'] = 1
 cfg['MACHINES'] = 1
 # Per Machine resources quotas
 cfg['DOMAIN'] = 'local'
@@ -115,19 +119,14 @@ cfg['SERIAL'] = ["disconnected"]
 cfg['HOST_MOUNTPOINT'] = "/host"
 cfg['ANSIBLE_VARS'] = "#{cfg['HOST_MOUNTPOINT']}/playbooks/variables/vbox.yml"
 # extra provision
-cfg['PLAYBOOKS'] = [
-    # install docker
-    {
+cfg['PLAYBOOKS'] = {
+    "default" => [{
+        # install docker
         "#{cfg['COPS_ROOT']}/roles/corpusops.roles/services_virt_docker/role.yml" => {
             "extra_vars" => cfg['ANSIBLE_VARS']
-        }
-    },
-    # install rancher server
-    {"playbooks/server.yml" => {"extra_vars" => cfg['ANSIBLE_VARS']}},
-    # base configure server & register the vbox itself as an agent
-    {"playbooks/vbox_standalone.yml" => {"extra_vars" => cfg['ANSIBLE_VARS']}},
-]
-
+        },
+    }],
+}
 # load settings from a local file in case
 localcfg = Hash.new
 VSETTINGS_Y = "#{CWD}/vagrant_config.yml"
@@ -136,6 +135,18 @@ if File.exist?(VSETTINGS_Y)
   if ! localcfg then localcfg = Hash.new end
 end
 cfg = cfg.merge(localcfg)
+
+cfg['PLAYBOOKS'].setdefault(
+    # install rancher server only on first box
+    cfg['MACHINE_NUM'].to_s,
+    cfg['PLAYBOOKS']['default'] + [
+        # install rancher server
+        {"playbooks/server.yml" => {"extra_vars" => cfg['ANSIBLE_VARS']}},
+        # base configure server & register the vbox itself as an agent
+        {"playbooks/vbox_standalone.yml" => {"extra_vars" => cfg['ANSIBLE_VARS']}},
+    ]
+)
+
 
 # Can be overidden by env. (used by manage.sh import/export)
 cfg.each_pair { |i, val| cfg[i] = ENV.fetch("CORPUSOPS_#{i}", val) }
@@ -178,17 +189,17 @@ File.open("#{VSETTINGS_Y}", 'w') {|f| f.write localcfg.to_yaml }
 
 #------------ SHARED FOLDERS ----------------------------
 mountpoints = {
-  File.expand_path('~/') => "/host_home",
   CWD => cfg['HOST_MOUNTPOINT']
 }
 
- 
+
 #------------ Computed variables ------------------------
-cfg['VIRTUALBOX_BASE_VM_NAME'] = "corpusops #{cfg['OS']} #{cfg['OS_RELEASE']}64"
-cfg['VM_HOST'] = "corpusops"
+cfg.setdefault('VM_HOST', "corpusops")
+cfg.setdefault('VIRTUALBOX_BASE_VM_NAME_PRE', "#{cfg['VM_HOST']}")
+cfg.setdefault('VIRTUALBOX_BASE_VM_NAME_POST', "#{cfg['OS']} #{cfg['OS_RELEASE']}64")
 
 def ansible_setup(ansible, cfg, *args)
-    ansible.playbook_command = "#{cfg['HOST_MOUNTPOINT']}/hacking/vagrant/sudo-ansible-playbook.sh"
+    ansible.playbook_command = "#{cfg['HOST_MOUNTPOINT']}/#{INNER_VAGRANTFILE_DIR}/sudo-ansible-playbook.sh"
     # ansible.inventory_path = cfg['HOST_MOUNTPOINT']
     ansible.provisioning_path = cfg['HOST_MOUNTPOINT']
     ansible.sudo = true
@@ -217,11 +228,13 @@ Vagrant.configure("2") do |config|
   end
   # disable default /vagrant shared folder
   config.vm.synced_folder ".", "/vagrant", disabled: true
-  (1..cfg['MACHINES'].to_i).each do |machine_num|
+  range_machines = (cfg['MACHINE_NUM'].to_i..cfg['MACHINE_NUM'].to_i+cfg['MACHINES'].to_i-1)
+  range_machines.each do |machine_num|
      hostname = "#{cfg['VM_HOST']}-#{machine_num}"
      machine = hostname
      config.vm.define  machine do |sub|
-       virtualbox_vm_name = "#{cfg['VIRTUALBOX_BASE_VM_NAME']} #{machine_num} (#{SCWD})"
+       cfg['VIRTUALBOX_BASE_VM_NAME'] = "#{cfg['VIRTUALBOX_BASE_VM_NAME_PRE']} #{machine_num} #{cfg['VIRTUALBOX_BASE_VM_NAME_POST']}(#{SCWD})"
+       virtualbox_vm_name = "#{cfg['VIRTUALBOX_BASE_VM_NAME']}"
        cfg['SSH_USERNAME'] = if ['xenial'].include? cfg['OS_RELEASE']
                              then "ubuntu"
                              else "vagrant"
@@ -233,7 +246,7 @@ Vagrant.configure("2") do |config|
        # do not use vagrant hostname plugin, it's evil
        # https://github.com/mitchellh/vagrant/blob/master/plugins/guests/debian/cap/change_host_name.rb#L22-L23
        sub.vm.hostname = nil
-	   private_ip = "#{cfg["PRIVATE_NETWORK"]}.#{machine_num+20}"
+	   private_ip = "#{cfg["PRIVATE_NETWORK"]}.#{machine_num+1}"
        sub.vm.network "private_network", ip: private_ip
        sub.vm.provider "virtualbox" do |vb|
            vb.name = "#{virtualbox_vm_name}"
@@ -294,10 +307,12 @@ EOF},
 
        post_provision_scripts = [
            "su -l -c #{cfg['POST_PROVISION_SCRIPT']}"]
-       #
+       # pre provision shell script
        provision_script = provision_scripts.join("\n")
        sub.vm.provision :shell, :inline => provision_script
-       cfg['PLAYBOOKS'].each do |playbookdef|
+       # ansible setup
+       playbooks = cfg['PLAYBOOKS'].setdefault(machine_num.to_s, cfg['PLAYBOOKS']['default'])
+       playbooks.each do |playbookdef|
             playbookdef.each do |playbook, variables|
                sub.vm.provision "ansible_local" do |ansible|
                   ansible.playbook = playbook
@@ -305,6 +320,7 @@ EOF},
                end
             end
        end
+       # post provision shell script
        provision_script = post_provision_scripts.join("\n")
        sub.vm.provision :shell, :inline => provision_script
     end
@@ -320,3 +336,4 @@ Vagrant.configure("2") do |config|
     vb.customize ["modifyvm", :id, "--uartmode1"] + cfg['SERIAL']
   end
 end
+# vim: set ft=ruby:

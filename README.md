@@ -1,6 +1,53 @@
-# Deploy & manage rancher clusters with docker & ansible
-## prerequisites
-### on control machine:
+# Rancher corpusops ansible based setup
+
+## Vagrant setup for test VMs
+- [See generic vagrant notes](./hacking/vagrant/README.md)
+- you need to do multiple time ``up`` on fist time as <br/>
+  rancher may need some time to bring up
+- We provide a setup to deploy a single node rancher (controller+agent) [doc](hacking/vagrant)
+
+    ```sh
+    git clone  https://github.com/corpusops/setups.rancher.git
+    cd setups.rancher
+    vagrant up
+    ```
+
+- You can hack the ``vagrant_config.yml`` file (eg: override the PLAYBOOKS var to setup elseway the rancher roles)
+- To login on your rancher host, see the ``local`` folder after provisionning:
+
+    ```sh
+    hacking/vagrant/manage ssh
+    # cat local/mountpoint/etc/rancher/rancher_env
+    # cat local/mountpoint/etc/rancher/ranchercompose_default_env
+    ```
+
+- To access the rancher ui, you can use two ways:
+    - With a ssh tunnel, just use [http://localhost:8080](http://localhost:8080)
+
+            ```sh
+            hacking/vagrant/ssh.sh -L 8080:localhost:8080
+            ```
+
+    - Or with the private network address:
+
+            ```sh
+            echo $RANCHER_URL
+            ```
+
+- ``rancher`` & ``rancher-compose`` utilities are installed inside the vm, use them from there
+
+    ```sh
+    hacking/vagrant/manage ssh
+    . /etc/rancher/ranchercompose_default_env
+    docker ps
+    rancher ps
+    ```
+
+
+## Deploy & manage rancher clusters with docker & ansible (NOT VAGRANT)
+
+### prerequisites
+#### on control machine:
 - corpusops
 - kubectl if deploying k8s environment
 - Install with:
@@ -12,7 +59,7 @@ cd local/corpusops.bootstrap
 bin/cops_apply_role roles/corpusops.roles/localsettings_kubectl/role.yml
 ```
 
-### Create ansible inventory
+#### Create ansible inventory
 
 - Create a regular ansible inventory with all of your variables and <br/>
   use the appropriate ``-i`` switch on your commands
@@ -24,7 +71,7 @@ bin/cops_apply_role roles/corpusops.roles/localsettings_kubectl/role.yml
 
 - Then  ``local/*/bin/ansible -i $abspath/inventory all -m ping``
 
-### on remote machines
+#### on remote machines
 - python
 - systemd
 - docker-ce >= 17.09.0-ce
@@ -36,11 +83,11 @@ cd local/corpusops.bootstrap
 bin/ansible-playbook -i $abspath/inventory roles/corpusops.roles/services_virt_docker/role.yml
 ```
 
-# configure server node
-## inventory
+## configure server node
+### inventory
 - [server variables](playbooks/roles/server/defaults/main.yml)
 
-## access your cluster
+### access your cluster
 - By default we configure rancher to listen on localhost:8080
 - TIP: You can access it remotly with a ssh tunnel:
     -
@@ -51,18 +98,18 @@ bin/ansible-playbook -i $abspath/inventory roles/corpusops.roles/services_virt_d
 
     - open http://localhost:12345
 
-## First run, dont forget to lock your rancher admin with a user
+### First run, dont forget to lock your rancher admin with a user
 - Go to admin/access control and configure authentication !!!
 - EG:
     - choose a login/password
     - click local
     - save
 
-# configure agent node
-## inventory
+## configure agent node
+### inventory
 - [agent variables](playbooks/roles/agent/defaults/main.yml)
 
-## Eg: deploy an agent to register a standalone k8s node
+### Eg: deploy an agent to register a standalone k8s node
 
 - vars if using docker compose and your agent is colocated with the server (same machine)
 
@@ -84,7 +131,7 @@ corpusops_rancher_agent_token=xxx:yyy:zzz
 corpusops_rancher_agent_collocated=1
 ```
 
-# Typical workflow to create a kubernetes cluster
+## Typical workflow to create a kubernetes cluster
 - Create a rancher server
 - Configure authentication on the server
 - Create one or more rancher agents with environment: ``"CATTLE_HOST_LABELS='etcd=true&orchestration=true&compute=true"``
@@ -93,53 +140,9 @@ corpusops_rancher_agent_collocated=1
     - ``compute=true``: compute plane node
 - Configure a kubernetes environment on the server and link those node onto the environment
 
-# Note on sharing the same host for the server and the agent
+## Note on sharing the same host for the server and the agent
 This use can is common on development boxes.
 
 Be aware that the agent has a 3way register step and that the containers that launch the registration scripts are not in the same network that the remaining container which use the network start of your baremetal host.
 
 Thus, The easiest way to make the registration process suceed is to ell your baremetal host to use a name for "localhost" that you will share and also use inside the "companions containers". This name can be either an hostname or a fqdn, we recommend using a FQDN.
-
-
-# vagrant setup
-- We provide a setup to deploy a single node rancher (controller+agent) [doc](hacking/vagrant)
-
-    ```sh
-    git clone  https://github.com/corpusops/setups.rancher.git
-    cd setups.rancher
-    vagrant up
-    ```
-
-- You can hack the ``vagrant_config.yml`` file (eg: override the PLAYBOOKS var to setup elseway the rancher roles)
-- To login on your rancher host, see the ``local`` folder after provisionning:
-
-    ```sh
-    hacking/ssh/mount.sh
-    . local/mountpoint/etc/rancher/rancher_env
-    ```
-
-- To access the rancher ui, you can use two ways:
-    - With a ssh tunnel, just use
-
-            ```sh
-            hacking/vagrant/ssh.sh -L 8080:localhost:8080
-            ```
-
-        - Then [http://localhost:8080](http://localhost:8080)
-
-    - With the private network address:
-
-            ```sh
-            echo $RANCHER_URL
-            ```
-
-        - Then ``http://$RANCHER_URL``
-
-- You can download the ``rancher`` & ``rancher-compose`` utilities on your local box (see the url in ``local/rancher_env``)
-
-    ```sh
-    hacking/ssh/mount.sh
-    . local/mountpoint/etc/rancher/rancher_env
-    docker ps
-    rancher ps
-    ```
