@@ -40,8 +40,8 @@
       accessMode: "unrestricted"
       enabled: false
       name: "{{corpusops_rancher_vbox_vars.admin}}"
-    username: "{{corpusops_rancher_vbox_vars.admin}}"
-    password: "{{corpusops_rancher_vbox_vars.password}}"
+      username: "{{corpusops_rancher_vbox_vars.admin}}"
+      password: "{{corpusops_rancher_vbox_vars.password}}"
     body_format: json
     status_code: 201
   when: "not corpusops_rancher_vbox_projects_lc.json.data[0].username"
@@ -89,8 +89,8 @@
       accessMode: "unrestricted"
       enabled: true
       name: "{{corpusops_rancher_vbox_vars.admin}}"
-    username: "{{corpusops_rancher_vbox_vars.admin}}"
-    password: "{{corpusops_rancher_vbox_vars.password}}"
+      username: "{{corpusops_rancher_vbox_vars.admin}}"
+      password: "{{corpusops_rancher_vbox_vars.password}}"
     body_format: json
     status_code: 201
   when: "not corpusops_rancher_vbox_projects_lc.json.data[0].username"

@@ -20,7 +20,7 @@
   vars:
     _archive:
       app_path: "{{corpusops_rancher_vbox_vars.bins_dir}}"
-      filetest: [rancher]
+      filetest: [rancher-compose]
       strip_components: 2
       urls:
         archive: "{{corpusops_rancher_vbox_ranchercompose_url.json.value}}"
@@ -29,9 +29,9 @@
     name: corpusops.roles/install_archive
   vars:
     _archive:
-      strip_components: 2
       app_path: "{{corpusops_rancher_vbox_vars.bins_dir}}"
-      filetest: [rancher-compose]
+      filetest: [rancher]
+      strip_components: 2
       urls:
         archive: "{{corpusops_rancher_vbox_rancher_url.json.value}}"
   tags: [download_archives]
@@ -40,5 +40,4 @@
     src: "/srv/apps/rancher/{{item}}"
     dest: "/usr/local/bin/{{item}}"
   with_items: [rancher, rancher-compose]
-
 

@@ -3,7 +3,7 @@
   uri:
     url: "{{corpusops_rancher_vbox_vars.url}}"
   register: corpusops_rancher_vbox_ready
-  retries: 65
+  retries: "{{corpusops_rancher_vbox_vars.retries}}"
   delay: 1
   until: corpusops_rancher_vbox_ready.status != -1
   failed_when: corpusops_rancher_vbox_ready.status == -1
@@ -12,4 +12,4 @@
   vars:
     api_user: "{{omit}}"
     api_pw: "{{omit}}"
-  tags: [readyness] 
+  tags: [readyness]

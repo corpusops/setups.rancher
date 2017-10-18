@@ -5,6 +5,7 @@ corpusops_rancher_vbox_url: "http://{{corpusops_rancher_vbox_localaddr}}:8080"
 corpusops_rancher_vbox_telemetry: "true"
 corpusops_rancher_vbox_admin: "rancheradmin"
 corpusops_rancher_vbox_cfg: "/etc/rancher"
+corpusops_rancher_vbox_retries: 120
 corpusops_rancher_vbox_password: "{{
     lookup('password',
            (corpusops_rancher_vbox_cfg+'/pwd_rancher_admin '
