@@ -10,4 +10,5 @@
   when: corpusops_rancher_vbox_auth.status == 200
   tags: [agent]
 - {include_tasks: download_bins.yml, tags: [download_bins]}
+- {include_tasks: scripts.yml, tags: [scripts]}
 #- {debug: msg: "{{vars}}"; failed_when: True}

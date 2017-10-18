@@ -1,0 +1,11 @@
+---
+- file:
+    state: directory
+    mode: "0755"
+    path: "{{corpusops_rancher_vbox_cfg}}"
+- copy:
+    dest: "{{corpusops_rancher_vbox_vars.rancherserver_dir}}/{{item}}"
+    src: "../templates/{{item}}"
+    mode: "0755"
+  with_items:
+    - cleanup.sh

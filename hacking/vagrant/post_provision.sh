@@ -19,4 +19,6 @@ if [[ -z $NO_APT_CLEANUP ]];then
     rm -vf /var/cache/apt/archives/*deb
     rm -rf  /var/lib/apt/lists/*
 fi
+# cleanup rancher & docker in one go
+/srv/rancher/rancherserver/cleanup.sh
 # vim:set et sts=4 ts=4 tw=80:
