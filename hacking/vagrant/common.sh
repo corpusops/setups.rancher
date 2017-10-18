@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 shopt -s extglob
 
-COPS_VAGRANT_DIR=${COPS_VAGRANT_DIR:-$(readlink -f "$(dirname $0)")}
+COPS_VAGRANT_DIR=${COPS_VAGRANT_DIR:-$(dirname "$(readlink -f "$0")")}
 W=${W:-$(readlink -f "$COPS_VAGRANT_DIR/../..")}
 
 sourcefile() {

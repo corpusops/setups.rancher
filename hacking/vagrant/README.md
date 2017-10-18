@@ -58,7 +58,7 @@ MACHINE_NUM: 2
 
 ### Bring this setup inside your app
 - Place the whole folder inside a subfolder of your repository
-- Tweak ansible setup (``ANSIBLE_VARS``, ``PLAYBOOKS`` (2 places !))
-- Symlink the vagrantfile to /Vagrantfile
+- Tweak ansible setup (``ANSIBLE_VARS``, ``PLAYBOOKS`` (2 places for that last item !))
+- Symlink the vagrantfile to ``/Vagrantfile`` and potentially ``manage``
 - You are done
 

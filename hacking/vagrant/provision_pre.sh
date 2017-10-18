@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 
-COPS_VAGRANT_DIR=${COPS_VAGRANT_DIR:-$(readlink -f "$(dirname $0)")}
+COPS_VAGRANT_DIR=${COPS_VAGRANT_DIR:-$(dirname "$(readlink -f "$0")")}
 . "$COPS_VAGRANT_DIR/common.sh" || exit 1
 cd "$W"
 
@@ -58,7 +58,7 @@ sync_ssh() {
 
 sync_corpusops() {
     if [[ -n "${SKIP_CORPUSOPS_SYNC}" ]];then
-        log "Force skip install"
+        log "Force skip sync corpusops"
         return 0
     fi
     if [[ -e "$COPS_ROOT/bin/install.sh" ]];then
@@ -69,7 +69,7 @@ sync_corpusops() {
             log "Skip corpusops sync"
         fi
     else
-        log "Skip corpusops installer, not found in $COPS_ROOT"
+        log "Skip corpusops sync, installer not found in $COPS_ROOT"
     fi
 }
 

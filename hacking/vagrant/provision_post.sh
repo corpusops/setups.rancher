@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 
-COPS_VAGRANT_DIR=${COPS_VAGRANT_DIR:-$(readlink -f "$(dirname $0)")}
+COPS_VAGRANT_DIR=${COPS_VAGRANT_DIR:-$(dirname "$(readlink -f "$0")")}
 . "$COPS_VAGRANT_DIR/common.sh" || exit 1
 cd "$W"
 
