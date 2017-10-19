@@ -141,12 +141,19 @@ cfg['PLAYBOOKS'] = {
 }
 # load settings from a local file in case
 localcfg = Hash.new
+# Load 2 other settings files because one can be commited and
+# the other can container local modifcations
 VSETTINGS_Y = "#{CWD}/vagrant_config.yml"
-if File.exist?(VSETTINGS_Y)
-  localcfg = YAML.load_file(VSETTINGS_Y)
-  if ! localcfg then localcfg = Hash.new end
+VSETTINGS_YO = "#{CWD}/vagrant_config-overrides.yml"
+localcfgs = Hash.new
+for vsettings in [VSETTINGS_Y, VSETTINGS_YO] do
+	if File.exist?(vsettings)
+	  localcfg = YAML.load_file(vsettings)
+	  if ! localcfg then localcfg = Hash.new end
+	end
+	cfg = cfg.merge(localcfg)
+	localcfgs[vsettings] = localcfg
 end
-cfg = cfg.merge(localcfg)
 
 cfg['PLAYBOOKS'].setdefault(
     # install rancher server only on first box
@@ -202,7 +209,9 @@ case cfg['OS']
 end
 
 # save back config to yaml (mainly for persiting corpusops)
-File.open("#{VSETTINGS_Y}", 'w') {|f| f.write localcfg.to_yaml }
+localcfgs[VSETTINGS_Y]['MACHINE_NUM'] = cfg['MACHINE_NUM']
+localcfgs[VSETTINGS_Y]['PRIVATE_NETWORK_CLUSTER_NUM'] = cfg['PRIVATE_NETWORK_CLUSTER_NUM']
+File.open("#{VSETTINGS_Y}", 'w') {|f| f.write localcfgs[VSETTINGS_Y].to_yaml }
 
 #------------ SHARED FOLDERS ----------------------------
 mountpoints = {

@@ -264,7 +264,7 @@ EOF
 
 
 do_export() {
-    BOX=${BOX:-$(default_to_first_host)}
+    BOX=${1:-$(default_to_first_host)}
   	hosts=$@
 	host=$2
  	if [[ -z $host ]];then

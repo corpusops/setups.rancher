@@ -1,4 +1,6 @@
 /local
+/*.box
 /vagrant_config.yml
 /.vagrant
 *.retry
+/.vagrant_config-overrides.yml
