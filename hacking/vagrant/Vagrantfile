@@ -97,7 +97,8 @@ cfg['FORCE_CORPUSOPS_PLAY_PLAYBOOKS'] = ''
 cfg['SKIP_CORPUSOPS_PLAY_PLAYBOOKS'] = ''
 cfg['FORCE_CORPUSOPS_INSTALL'] = ''
 cfg['FORCE_CORPUSOPS_SYNC'] = ''
-cfg["PRIVATE_NETWORK"] = "192.168.99"
+cfg["PRIVATE_NETWORK_PRE"] = "192.168"
+cfg["PRIVATE_NETWORK_CLUSTER_NUM"] = nil
 # Number of machines to spawn
 cfg['MACHINE_NUM'] = 1
 cfg['MACHINES'] = 1
@@ -165,6 +166,11 @@ cfg.each_pair { |i, val| cfg[i] = ENV.fetch("CORPUSOPS_#{i}", val) }
     val = ENV.fetch("CORPUSOPS_#{i}", nil)
     if val != nil then cfg[i] = val end
 end
+
+if cfg['PRIVATE_NETWORK_CLUSTER_NUM'] == nil then
+    cfg['PRIVATE_NETWORK_CLUSTER_NUM'] = 25 + cfg['MACHINE_NUM'].to_i
+end
+cfg.setdefault('PRIVATE_NETWORK', "#{cfg['PRIVATE_NETWORK_PRE']}.#{cfg['PRIVATE_NETWORK_CLUSTER_NUM']}")
 
 # IP managment
 # The box used a default NAT private IP
@@ -237,7 +243,7 @@ Vagrant.configure("2") do |config|
   config.vm.synced_folder ".", "/vagrant", disabled: true
   range_machines = (cfg['MACHINE_NUM'].to_i..cfg['MACHINE_NUM'].to_i+cfg['MACHINES'].to_i-1)
   range_machines.each do |machine_num|
-     hostname = "#{cfg['VM_HOST']}-#{machine_num}"
+     hostname = "#{cfg['VM_HOST']}-#{cfg['MACHINE_NUM']}-#{machine_num}"
      machine = hostname
      config.vm.define  machine do |sub|
        cfg['VIRTUALBOX_BASE_VM_NAME'] = "#{cfg['VIRTUALBOX_BASE_VM_NAME_PRE']} #{machine_num} #{cfg['VIRTUALBOX_BASE_VM_NAME_POST']}(#{SCWD})"
@@ -253,7 +259,7 @@ Vagrant.configure("2") do |config|
        # do not use vagrant hostname plugin, it's evil
        # https://github.com/mitchellh/vagrant/blob/master/plugins/guests/debian/cap/change_host_name.rb#L22-L23
        sub.vm.hostname = nil
-     private_ip = "#{cfg["PRIVATE_NETWORK"]}.#{machine_num+1}"
+       private_ip = "#{cfg["PRIVATE_NETWORK"]}.#{machine_num+1}"
        sub.vm.network "private_network", ip: private_ip
        sub.vm.provider "virtualbox" do |vb|
            vb.name = "#{virtualbox_vm_name}"

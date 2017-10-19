@@ -106,7 +106,8 @@ motd() {
 extra() {
     #### extra image stuff
     echo
-    /srv/rancher/rancherserver/cleanup.sh
+    [[ -e /srv/rancher/rancherserver/cleanup.sh ]] && \
+        /srv/rancher/rancherserver/cleanup.sh
 }
 
 
