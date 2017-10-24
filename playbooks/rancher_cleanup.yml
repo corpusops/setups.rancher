@@ -1,0 +1,13 @@
+- hosts: all
+  tasks:
+    - shell: |
+        if [ -e /srv/rancher/rancherserver/cleanup.sh ];then
+          /srv/rancher/rancherserver/cleanup.sh
+        fi
+      changed_when: false
+      failed_when: false
+      register: rancher_cleanup
+      no_log: true
+    - debug: "msg=ok"
+      failed_when: |-
+        (rancher_cleanup.stdout.strip().lower()[-2:] != 'ok')

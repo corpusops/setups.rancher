@@ -2,6 +2,8 @@
 - shell: docker inspect rancher-agent
   failed_when: false
   register: agentstatus
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - include_tasks: register_agent.yml
   tags: corpusops_rancher_register_agent
   when: agentstatus.rc != 0
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"

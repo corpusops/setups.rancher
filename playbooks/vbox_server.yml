@@ -1,0 +1,21 @@
+---
+- import_playbook: ./vbox_load_vars.yml
+- import_playbook: ./sudo.yml
+- hosts: all
+  vars:
+    ansible_become: true
+    ansible_become_user: root
+  pre_tasks:
+    - shell: |
+        set -ex
+        docker ps | grep rancher | grep -q server
+        test -e /etc/systemd/system/rancherserver.service
+      register: has_ranchers_configured_test
+      failed_when: false
+      changed_when: false
+      no_log: true
+- import_playbook: ./server.yml
+  when: |
+    (((not vbox_cops.get('SKIP_RANCHER_PROVISON', False)) and
+     (has_ranchers_configured_test.rc !=0)) or
+     vbox_cops.get('FORCE_RANCHER_PROVISON', False))

@@ -1,0 +1,7 @@
+---
+- import_playbook: ./vbox_load_vars.yml
+- import_playbook: ./sudo.yml
+- import_playbook: ./rancher_cleanup.yml
+  when: |
+    (not vbox_cops.get('SKIP_RANCHER_PROVISON', False) or
+     vbox_cops.get('FORCE_RANCHER_PROVISON', False))

@@ -2,3 +2,4 @@
 - include_tasks: test_auth.yml
 - debug: msg="API auth failed"
   failed_when: corpusops_rancher_vbox_auth.status != 200
+  no_log: true

@@ -4,6 +4,7 @@
     method: GET
     tags: corpusops_rancher_vbox_auth21
   register: corpusops_rancher_vbox_auth21
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - uri:
     url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/settings/telemetry.opt"
     method: PUT
@@ -19,20 +20,24 @@
   when: >-
     ( corpusops_rancher_vbox_auth21.json.activeValue !=
       corpusops_rancher_vbox_vars.telemetry)
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - uri:
     url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/project"
     method: GET
     body_format: json
   register: corpusops_rancher_vbox_projects
   tags: corpusops_rancher_vbox_projects
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - set_fact:
     corpusops_rancher_vbox_pid: "{{corpusops_rancher_vbox_projects.json.data[0]['id']}}"
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - uri:
     url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/localauthconfigs"
     method: GET
     body_format: json
   register: corpusops_rancher_vbox_projects_lc
   tags: corpusops_rancher_vbox_lc
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - uri:
     url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/localauthconfigs"
     method: POST
@@ -47,12 +52,14 @@
   when: "not corpusops_rancher_vbox_projects_lc.json.data[0].username"
   register: corpusops_rancher_vbox_projects_lcs
   tags: corpusops_rancher_vbox_projects_lcs
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - uri:
     url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/accounts"
     method: GET
     body_format: json
   register: corpusops_rancher_vbox_projects_accounts
   tags: corpusops_rancher_vbox_projects_accounts
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 #- debug: "msg={{corpusops_rancher_vbox_projects_accounts}}"
 - uri:
     url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/accounts"
@@ -60,14 +67,17 @@
     body_format: json
   register: corpusops_rancher_vbox_projects_accounts
   tags: corpusops_rancher_vbox_projects_accounts
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - set_fact:
     corpusops_rancher_vbox_projects_aid: "{{corpusops_rancher_vbox_projects_accounts.json.data[0].id}}"
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - uri:
     url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/apikeys"
     method: GET
     body_format: json
   register: corpusops_rancher_vbox_projects_apikeys
   tags: corpusops_rancher_vbox_projects_apikeys
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - uri:
     url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/apikeys"
     method: POST
@@ -82,6 +92,7 @@
   when: not corpusops_rancher_vbox_projects_apikeys.json.data
   register: corpusops_rancher_vbox_projects_apikeysc
   tags: corpusops_rancher_vbox_projects_apikeysc
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - uri:
     url: "{{corpusops_rancher_vbox_vars.url}}/v2-beta/localauthconfigs"
     method: POST
@@ -96,3 +107,4 @@
   when: "not corpusops_rancher_vbox_projects_lc.json.data[0].username"
   register: corpusops_rancher_vbox_projects_lcs2
   tags: corpusops_rancher_vbox_projects_lcs2
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"

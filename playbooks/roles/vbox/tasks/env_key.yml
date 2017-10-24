@@ -5,10 +5,12 @@
     body_format: json
     user: "{{corpusops_rancher_vbox_vars.api_v}}"
     password: "{{corpusops_rancher_vbox_vars.api_k}}"
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
   register: corpusops_rancher_vbox_projects
   tags: corpusops_rancher_vbox_projects
 - set_fact:
     corpusops_rancher_vbox_pid: "{{corpusops_rancher_vbox_projects.json.data[0]['id']}}"
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - stat:
     path: "{{corpusops_rancher_vbox_cfg}}/ranchercompose_env"
   register: corpusops_rancher_vbox_compose_env
@@ -23,6 +25,7 @@
   register: corpusops_rancher_vbox_envkey
   tags: corpusops_rancher_vbox_envkey
   when: not corpusops_rancher_vbox_compose_env.stat.exists
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - copy:
     dest: "{{corpusops_rancher_vbox_cfg}}/ranchercompose_env_default"
     mode: "0600"
@@ -39,3 +42,4 @@
       export RANCHER_ACCESS_KEY="{{corpusops_rancher_vbox_envkey.json.publicValue}}"
       export RANCHER_SECRET_KEY="{{corpusops_rancher_vbox_envkey.json.secretValue}}"
   when: not corpusops_rancher_vbox_compose_env.stat.exists
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"

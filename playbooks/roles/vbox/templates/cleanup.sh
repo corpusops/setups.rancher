@@ -82,7 +82,8 @@ optimize table zone;
 EOF
 set -ex
 docker cp $s  $id:/$s
-docker exec -ti $id bash -c "mysql < /$s"
+#docker exec -ti $id bash -c "mysql < /$s"
+docker exec $id bash -c "cat /$s|mysql"
 DO_IMAGES_CLEANUP=y DO_CONTAINERS_CLEANUP=y DO_VOLUMES_CLEANUP=y \
     /srv/corpusops/corpusops.bootstrap/bin/cops_docker_cleanup.sh
 # vim:set et sts=4 ts=4 tw=80:

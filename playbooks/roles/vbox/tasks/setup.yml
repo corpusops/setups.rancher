@@ -1,13 +1,17 @@
 ---
-- file:
-    state: directory
-    mode: "0700"
-    path: "{{corpusops_rancher_vbox_cfg}}"
-  tags: [config]
+- include_tasks: get_secret_variable.yml
+  vars:
+    secret_path: "{{corpusops_rancher_vbox_cfg}}"
+  with_items:
+    - corpusops_rancher_vbox_password
+    - corpusops_rancher_vbox_api_v
+    - corpusops_rancher_vbox_api_k
+  no_log: "{{corpusops_rancher_vbox_no_log}}"
 - include_role: {name: corpusops.roles/vars_registry}
   vars:
     cops_vars_registry_target: corpusops_rancher_vbox
   tags: [vars]
+  no_log: "{{corpusops_rancher_vbox_no_log}}"
 - copy:
     dest: "{{corpusops_rancher_vbox_cfg}}/rancher_env"
     mode: "0600"
@@ -24,3 +28,4 @@
       export RANCHER_ACCESS_KEY="{{corpusops_rancher_vbox_vars.api_v}}"
       export RANCHER_SECRET_KEY="{{corpusops_rancher_vbox_vars.api_k}}"
   tags: [config]
+  no_log: "{{corpusops_rancher_vbox_no_log}}"

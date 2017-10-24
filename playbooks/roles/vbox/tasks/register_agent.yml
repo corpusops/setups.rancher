@@ -8,8 +8,10 @@
     password: "{{corpusops_rancher_vbox_vars.api_k}}"
   register: corpusops_rancher_vbox_projects
   tags: corpusops_rancher_vbox_projects
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - set_fact:
     corpusops_rancher_vbox_pid: "{{corpusops_rancher_vbox_projects.json.data[0]['id']}}"
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - uri:
     method: POST
     body_format: json
@@ -18,6 +20,7 @@
     user: "{{corpusops_rancher_vbox_vars.api_v}}"
     password: "{{corpusops_rancher_vbox_vars.api_k}}"
   register: rancher_token_url
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - uri:
     method: GET
     body_format: json
@@ -25,6 +28,7 @@
     user: "{{corpusops_rancher_vbox_vars.api_v}}"
     password: "{{corpusops_rancher_vbox_vars.api_k}}"
   register: rancher_token_infos
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - set_fact:
     corpusops_rancher_agent_base_url: "{{corpusops_rancher_vbox_vars.url}}/v1"
     corpusops_rancher_agent_token: "{{rancher_token_infos.json.token}}"

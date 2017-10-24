@@ -7,6 +7,7 @@
     body_format: json
   register: corpusops_rancher_vbox_ranchercompose_url
   tags: corpusops_rancher_vbox_ranchercompose_url
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - uri:
     method: GET
     url: "{{corpusops_rancher_vbox_vars.url}}/v1/settings/default.cattle.rancher.cli.linux.url"
@@ -15,6 +16,7 @@
     body_format: json
   register: corpusops_rancher_vbox_rancher_url
   tags: corpusops_rancher_vbox_rancher_url
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
 - include_role:
     name: corpusops.roles/install_archive
   vars:

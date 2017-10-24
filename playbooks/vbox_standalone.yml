@@ -1,4 +1,31 @@
 ---
+- import_playbook: ./vbox_load_vars.yml
+  tags: [setup]
+- import_playbook: ./sudo.yml
+  tags: [setup]
 - hosts: all
+  vars:
+    ansible_become: true
+    ansible_become_user: root
+  pre_tasks:
+    - shell: |
+        set -ex
+        test -e /usr/local/bin/rancher
+        test -e /usr/local/bin/rancher-compose
+        rancher --version
+        ( set +x;. /etc/rancher/rancher_env;\
+          rancher ps | grep -q healthy;)
+        ( set +x;. /etc/rancher/ranchercompose_env_default;\
+          rancher ps | grep -q healthy; )
+      failed_when: false
+      changed_when: false
+      register: has_rancher_configured_test
+      no_log: true
+      tags: [setup]
   roles:
-    - {name: vbox, tags: [rancher-vbox]}
+    - name: vbox
+      tags: [rancher-vbox]
+      when: |
+       (((not vbox_cops.get('SKIP_RANCHER_PROVISON', False)) and
+        (has_rancher_configured_test.rc !=0)) or
+        vbox_cops.get('FORCE_RANCHER_PROVISON', False))

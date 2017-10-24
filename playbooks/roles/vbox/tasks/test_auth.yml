@@ -5,3 +5,4 @@
   register: corpusops_rancher_vbox_auth
   tags: corpusops_rancher_vbox_auth
   failed_when: False
+  no_log: "{{corpusops_rancher_vbox_vars.no_log}}"
