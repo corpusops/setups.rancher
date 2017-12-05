@@ -4,10 +4,8 @@
 - import_playbook: ./sudo.yml
   tags: [setup]
 - hosts: all
-  vars:
-    ansible_become: true
-    ansible_become_user: root
   pre_tasks:
+    - include_vars: ../vaults/sudo.yml
     - shell: |
         set -ex
         test -e /usr/local/bin/rancher

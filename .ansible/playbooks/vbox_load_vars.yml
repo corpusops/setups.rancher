@@ -1,0 +1,7 @@
+---
+- hosts: all
+  tasks:
+  - include_role: {name: corpusops.roles/vars}
+  - include_vars: ../vaults/docker.yml
+  - include_vars: ../vaults/vbox.yml
+  - include_tasks: "{{cops_playbooks}}/provision/vagrant/tasks/load_vars.yml"

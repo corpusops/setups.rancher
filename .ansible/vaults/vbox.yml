@@ -1,3 +1,2 @@
 ---
-cops_path: "../local/corpusops.bootstrap"
 cops_vagrant: "{{cops_path}}/hacking/vagrant"

@@ -3,6 +3,7 @@ $ABSFILE = File.absolute_path(__FILE__)
 $ABSDIR = File.dirname($ABSFILE)
 $COPS_DIR = ENV.fetch('COPS_DIR', File.join($ABSDIR, "local/corpusops.bootstrap"))
 
+
 def load_glue()
     # test for vagrant glue to be in a project ./local subdir or if
     # we are already on corpusops.bootstrap
@@ -21,24 +22,26 @@ cfg = load_glue()
 # add here post common modification like modifying played ansible playbooks
 # please use file variables to let users a way to call manually ansible
 ansible_vars = {
-    :extra_vars => "playbooks/variables/vbox.yml"
+    :raw_arguments => [
+        "-e@.ansible/vaults/vbox.yml"
+    ]
 }
 
 # install docker everywhere (MTU)
 cfg = cops_inject_playbooks \
     :cfg => cfg,
-    :playbooks => [{"playbooks/vbox_install_docker.yml" => ansible_vars}]
+    :playbooks => [{".ansible/playbooks/vbox_install_docker.yml" => ansible_vars}]
 
 # install rancher server only on first box
 cfg = cops_inject_playbooks \
     :cfg => cfg,
     :playbooks => [
         # install rancher server
-        {"playbooks/vbox_server.yml" => ansible_vars},
+        {".ansible/playbooks/vbox_server.yml" => ansible_vars},
         # base configure server & register the vbox itself as an agent
-        {"playbooks/vbox_standalone.yml" => ansible_vars},
+        {".ansible/playbooks/vbox_standalone.yml" => ansible_vars},
         # cleanup
-        {"playbooks/vbox_rancher_cleanup.yml" => ansible_vars},
+        {".ansible/playbooks/vbox_rancher_cleanup.yml" => ansible_vars},
     ],
     :machine_num => cfg['MACHINE_NUM']
 #

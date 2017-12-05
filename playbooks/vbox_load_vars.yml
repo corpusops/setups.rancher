@@ -1,6 +1,0 @@
----
-- hosts: all
-  tasks:
-  - include_vars: ./variables/docker.yml
-  - include_vars: ./variables/vbox.yml
-  - include_tasks: "{{cops_vagrant}}/playbooks/tasks/load_vars.yml"
