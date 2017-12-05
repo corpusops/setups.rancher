@@ -14,8 +14,11 @@
       failed_when: false
       changed_when: false
       no_log: true
+    - set_fact:
+        cacheable: false
+        force_rancher_provision: |-
+           (((not vars.get('SKIP_RANCHER_PROVISON', False)) and
+            (has_ranchers_configured_test.rc !=0)) or
+            vars.get('FORCE_RANCHER_PROVISON', False))
 - import_playbook: ./server.yml
-  when: |
-    (((not vbox_cops.get('SKIP_RANCHER_PROVISON', False)) and
-     (has_ranchers_configured_test.rc !=0)) or
-     vbox_cops.get('FORCE_RANCHER_PROVISON', False))
+  when: force_rancher_provision

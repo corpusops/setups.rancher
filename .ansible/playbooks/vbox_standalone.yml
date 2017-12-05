@@ -20,10 +20,15 @@
       register: has_rancher_configured_test
       no_log: true
       tags: [setup]
+    - set_fact:
+        cacheable: false
+        force_rancher_sa_provision: |-
+           (((not vars.get('SKIP_RANCHER_STANDALONE_PROVISON', False)) and
+            (has_rancher_configured_test.rc !=0)) or
+            vars.get('FORCE_RANCHER_STANDALONE_PROVISON', False))
+
+- hosts: all
   roles:
     - name: vbox
       tags: [rancher-vbox]
-      when: |
-       (((not vbox_cops.get('SKIP_RANCHER_PROVISON', False)) and
-        (has_rancher_configured_test.rc !=0)) or
-        vbox_cops.get('FORCE_RANCHER_PROVISON', False))
+      when: force_rancher_sa_provision
