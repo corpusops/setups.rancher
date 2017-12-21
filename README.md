@@ -15,9 +15,10 @@ export FTP_URL=<tri>@ftp.makina-corpus.net:/srv/projects/makina_commun/data/comm
 
     ```sh
     git clone --recursive $A_GIT_URL $COPS_CWD
+    cd $COPS_CWD
+    # Maybe: git checkout -b <branch>
     git submodule init
     git submodule update
-    cd $COPS_CWD
     .ansible/scripts/download_corpusops.sh
     .ansible/scripts/setup_ansible.sh
     ```
