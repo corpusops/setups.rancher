@@ -5,3 +5,4 @@
 /.vagrant
 *.retry
 /.vagrant_config-overrides.yml
+/.ansible/scripts/ansible_deploy_env

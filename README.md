@@ -17,6 +17,7 @@ export FTP_URL=<tri>@ftp.makina-corpus.net:/srv/projects/makina_commun/data/comm
     git clone --recursive $A_GIT_URL $COPS_CWD
     git submodule init
     git submodule update
+    cd $COPS_CWD
     .ansible/scripts/download_corpusops.sh
     .ansible/scripts/setup_ansible.sh
     ```
@@ -29,7 +30,6 @@ export FTP_URL=<tri>@ftp.makina-corpus.net:/srv/projects/makina_commun/data/comm
 - Setup needed when you dont have Ci setup for doing it for you
 - [corpusops deploy doc](https://github.com/corpusops/corpusops.bootstrap/blob/master/doc/projects/deploy.md)<br/>
   or ``local/corpusops.bootstrap/doc/projects/deploy.md`` after corpusops.bootstrap download.
-
 
 
 ## Vagrant setup for test VMs
