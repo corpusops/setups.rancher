@@ -48,7 +48,7 @@ export FTP_URL=<tri>@ftp.makina-corpus.net:/srv/projects/makina_commun/data/comm
 - To login on your rancher host, see the ``local`` folder after provisionning:
 
     ```sh
-    hacking/vagrant/manage ssh
+    ./vm_manage ssh
     # cat local/mountpoint/etc/rancher/rancher_env
     # cat local/mountpoint/etc/rancher/ranchercompose_default_env
     ```
@@ -69,7 +69,7 @@ export FTP_URL=<tri>@ftp.makina-corpus.net:/srv/projects/makina_commun/data/comm
 - ``rancher`` & ``rancher-compose`` utilities are installed inside the vm, use them from there
 
     ```sh
-    hacking/vagrant/manage ssh
+    ./vm_manage ssh
     . /etc/rancher/ranchercompose_default_env
     docker ps
     rancher ps
