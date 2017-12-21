@@ -3,7 +3,7 @@ COPS_CWD=${COPS_CWD:-$(pwd)}
 log() { echo "$@" >&2; }
 vv() { log "($COPS_CWD) $@";"$@"; }
 debug() { if [[ -n "${ADEBUG-}" ]];then log "$@";fi }
-vvdebug() { if [[ -n "${ADEBUG-}" ]];then vv "$@";fi }
+vvdebug() { if [[ -n "${ADEBUG-}" ]];then vv "$@";fi;"${@}"; }
 S=$(basename $0)
 D=$(dirname $0)
 local_folder="$COPS_CWD/local"
