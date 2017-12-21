@@ -1,0 +1,1 @@
+../../../corpusops.bootstrap/hacking/deploy/setup_core_variables.sh
