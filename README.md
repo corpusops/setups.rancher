@@ -1,5 +1,37 @@
 # Rancher corpusops ansible based setup
 
+## Corpusops doc (deployment)
+
+### Setup variables
+```sh
+export A_GIT_URL="https://gitlab.makina-corpus.net/irstea/dinamis.git"
+export COPS_CWD="$HOME/makina/irstea/dinamis"
+export NONINTERACTIVE=1
+# VM NOT DONE
+export FTP_URL=<tri>@ftp.makina-corpus.net:/srv/projects/makina_commun/data/commun/nobackup/vm_bar/*-*box
+```
+### Clone the project
+- Note the **--recursive** switch; if you follow the next commands, you can then skip this step on the next docs.
+
+    ```sh
+    git clone --recursive $A_GIT_URL $COPS_CWD
+    git submodule init
+    git submodule update
+    .ansible/scripts/download_corpusops.sh
+    .ansible/scripts/setup_ansible.sh
+    ```
+
+### Deploy the dev VM
+- [corpusops vagrant doc](https://github.com/corpusops/corpusops.bootstrap/blob/master/doc/projects/vagrant.md)<br/>
+  or ``local/corpusops.bootstrap/doc/projects/vagrant.md`` after corpusops.bootstrap download.
+
+### Deploy on enviromnents
+- Setup needed when you dont have Ci setup for doing it for you
+- [corpusops deploy doc](https://github.com/corpusops/corpusops.bootstrap/blob/master/doc/projects/deploy.md)<br/>
+  or ``local/corpusops.bootstrap/doc/projects/deploy.md`` after corpusops.bootstrap download.
+
+
+
 ## Vagrant setup for test VMs
 - [See generic vagrant notes](./hacking/vagrant/README.md)
 - you need to do multiple time ``up`` on fist time as <br/>
