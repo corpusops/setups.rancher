@@ -4,11 +4,11 @@
 
 ### Setup variables
 ```sh
-export A_GIT_URL="https://gitlab.makina-corpus.net/irstea/dinamis.git"
-export COPS_CWD="$HOME/makina/irstea/dinamis"
+export A_GIT_URL="https://github.com/corpusops/setups.rancher"
+export COPS_CWD="$HOME/setups.rancher"
 export NONINTERACTIVE=1
 # VM NOT DONE
-export FTP_URL=<tri>@ftp.makina-corpus.net:/srv/projects/makina_commun/data/commun/nobackup/vm_bar/*-*box
+export FTP_URL=<tri>@/path"
 ```
 ### Clone the project
 - Note the **--recursive** switch; if you follow the next commands, you can then skip this step on the next docs.
