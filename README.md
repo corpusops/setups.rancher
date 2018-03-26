@@ -1,4 +1,4 @@
-# Rancher corpusops ansible based setup
+# Rancher1 corpusops ansible based setup
 
 ## Corpusops doc (deployment)
 
@@ -20,16 +20,16 @@ export FTP_URL=<tri>@/path"
     git submodule init
     git submodule update
     .ansible/scripts/download_corpusops.sh
-    .ansible/scripts/setup_ansible.sh
+    .ansible/scripts/setup_corpusops.sh
     ```
 
 ### Deploy the dev VM
-- [corpusops vagrant doc](https://github.com/corpusops/corpusops.bootstrap/blob/master/doc/projects/vagrant.md)<br/>
+- [corpusops vagrant doc](https://github.com/corpusops/corpusops.bootstrap/blob/master/docs/projects/vagrant.md)<br/>
   or ``local/corpusops.bootstrap/doc/projects/vagrant.md`` after corpusops.bootstrap download.
 
 ### Deploy on enviromnents
 - Setup needed when you dont have Ci setup for doing it for you
-- [corpusops deploy doc](https://github.com/corpusops/corpusops.bootstrap/blob/master/doc/projects/deploy.md)<br/>
+- [corpusops deploy doc](https://github.com/corpusops/corpusops.bootstrap/blob/master/docs/projects/deploy.md)<br/>
   or ``local/corpusops.bootstrap/doc/projects/deploy.md`` after corpusops.bootstrap download.
 
 
